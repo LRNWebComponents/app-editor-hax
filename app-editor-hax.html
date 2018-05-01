@@ -1,16 +1,25 @@
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="../materializecss-styles/materializecss-styles.html">
-<link rel="import" href="../hax-body-behaviors/hax-body-behaviors.html">
-<link rel="import" href="../schema-behaviors/schema-behaviors.html">
+<link rel="import" href="../hax-body/hax-store.html">
+<link rel="import" href="../hax-body/hax-body.html">
+<link rel="import" href="../hax-body/hax-autoloader.html">
+<link rel="import" href="../hax-body/hax-manager.html">
+<link rel="import" href="../hax-body/hax-panel.html">
+<link rel="import" href="../hax-body/hax-app-picker.html">
+<link rel="import" href="../hax-body/hax-export-dialog.html">
+
 <!--
 `app-editor-hax`
-A LRN element
+stand alone editor intended for use in a larger application
+as the editor. It is like cms-hax in that it's prepackaged
+the way HAX will be integrated but the connotation is that there
+is no edit state and that it is always editing effectively.
 
 @demo demo/index.html
 
 @microcopy - the mental model for this element
- -
- -
+ - app - an application desktop or mobile that's deployed this
+ - editor - in this case HAX is the editor / authoring tool
+ - hax - just to make sure we're aware that it's actually HAX based
 
 -->
 
@@ -19,73 +28,55 @@ A LRN element
     <style>
       :host {
         display: block;
+        font-size: 1em;
+        box-sizing: content-box;
       }
     </style>
-    <h2>[[title]]</h2>
+    <hax-store hidden app-store="[[appStoreConnection]]"></hax-store>
+    <hax-autoloader hidden></hax-autoloader>
+    <hax-panel id="panel" hide-panel-ops hide-export-button hide-preferences-button align="right"></hax-panel>
+    <hax-body id="body"></hax-body>
+    <hax-manager></hax-manager>
+    <hax-export-dialog></hax-export-dialog>
+    <hax-app-picker></hax-app-picker>
   </template>
 
   <script>
     Polymer({
 
       is: 'app-editor-hax',
-      behaviors: [HAXBehaviors.PropertiesBehaviors, MaterializeCSSBehaviors.ColorBehaviors, SchemaBehaviors.Schema],
       properties: {
         /**
-         * Title
+         * Establish the app store connection to pull in our JSON
          */
-        title: {
-          type: String,
-        },
+        appStoreConnection: {
+          type: Object,
+        }
       },
       /**
-       * Attached to the DOM, now fire.
+       * Basic save event to make targetting easier.
+       */
+      save: function() {
+        // convert the body area to content
+        let content = Polymer.HaxStore.instance.activeHaxBody.haxToContent();
+        // fire event so apps can react correctly
+        this.fire('app-editor-hax-save', content);
+      },
+      /**
+       * Basic import capability abstraction of hax body's import capabilities
+       */
+      import: function(html) {
+        // import the HTML blob to get going
+        Polymer.HaxStore.instance.activeHaxBody.importContent(html);
+        // fire event just letting things know this happened
+        this.fire('app-editor-hax-import', true);
+      },
+      /**
+       * Attached to the DOM, now fire that we are editing this thing.
        */
       attached: function() {
-        // Establish hax property binding
-        let props = {
-          'canScale': true,
-          'canPosition': true,
-          'canEditSource': false,
-          'gizmo': {
-            'title': 'Sample gizmo',
-            'description': 'The user will be able to see this for selection in a UI.',
-            'icon': 'av:play-circle-filled',
-            'color': 'grey',
-            'groups': ['Video', 'Media'],
-            'handles': [
-              {
-                'type': 'video',
-                'url': 'source'
-              }
-            ],
-            'meta': {
-              'author': 'Your organization on github'
-            }
-          },
-          'settings': {
-            'quick': [
-              {
-                'property': 'title',
-                'title': 'Title',
-                'description': 'The title of the element',
-                'inputMethod': 'textfield',
-                'icon': 'editor:title',
-              },
-            ],
-            'configure': [
-              {
-                'property': 'title',
-                'title': 'Title',
-                'description': 'The title of the element',
-                'inputMethod': 'textfield',
-                'icon': 'editor:title',
-              },
-            ],
-            'advanced': [
-            ]
-          }
-        };
-        this.setHaxProperties(props);
+        // set state for edit mode
+        Polymer.HaxStore.write('editMode', true, this);
       },
     });
   </script>
