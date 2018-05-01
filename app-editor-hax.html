@@ -76,7 +76,9 @@ is no edit state and that it is always editing effectively.
        */
       attached: function() {
         // set state for edit mode
-        Polymer.HaxStore.write('editMode', true, this);
+        setTimeout( () => {
+          Polymer.HaxStore.write('editMode', true, this);
+        }, 250);
       },
     });
   </script>
