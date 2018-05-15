@@ -78,15 +78,6 @@ is no edit state and that it is always editing effectively.
         // fire event just letting things know this happened
         this.fire('app-editor-hax-import', true);
       },
-      /**
-       * Attached to the DOM, now fire that we are editing this thing.
-       */
-      attached: function() {
-        // set state for edit mode
-        setTimeout( () => {
-          Polymer.HaxStore.write('editMode', true, this);
-        }, 250);
-      },
     });
   </script>
 </dom-module>
